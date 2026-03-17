@@ -109,8 +109,10 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.33.1
         with:
+          scan-type: image
           #image-ref: ${{ steps.meta.outputs.tags }}
           image-ref: local/tasklist-phase1:scan
+          scanners: vuln
           format: sarif
           output: trivy-image-results.sarif
           exit-code: '0'
