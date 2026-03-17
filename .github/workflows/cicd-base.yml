@@ -1,11 +1,10 @@
 name: CI/CD security
+
 on:
   workflow_dispatch:
 
 env:
-  # Use docker.io for Docker Hub
   REGISTRY: ghcr.io
-  # github.repository as <account>/<repo>
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
@@ -15,7 +14,7 @@ jobs:
       security-events: write
       actions: read
       contents: read
-      packages: write
+      packages: read
 
     steps:
       - name: Code checkout
@@ -27,11 +26,9 @@ jobs:
           distribution: "temurin"
           java-version: "21"
 
-      # Run unit tests
       - name: Build e testes (JUnit)
         run: mvn clean test
 
-      # CodeQL - SAST
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
@@ -43,7 +40,6 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
 
-      # Trivy
       - name: Complete scan with Trivy
         uses: aquasecurity/trivy-action@0.35.0
         with:
@@ -65,11 +61,17 @@ jobs:
           name: Generate artifact with Trivy result
           path: trivy-results.sarif
 
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: security-scan
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Login in a Docker registry
-      # https://github.com/docker/login-action
       - name: Log into registry ${{ env.REGISTRY }}
         uses: docker/login-action@v3
         with:
@@ -77,11 +79,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Setup QEMU for multi-arch emulation
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      # Setup Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -91,7 +91,6 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      # Push multi-arch (AMD64 + ARM64)
       - name: Push Docker image (multi-arch)
         uses: docker/build-push-action@v5
         with:
