@@ -99,7 +99,7 @@ jobs:
           context: .
           file: ./Dockerfile
           #tags: ${{ steps.meta.outputs.tags }}
-          tags: tasklist-phase1:scan
+          tags: local/tasklist-phase1:scan
           #labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64
           push: false
@@ -110,11 +110,13 @@ jobs:
         uses: aquasecurity/trivy-action@0.33.1
         with:
           #image-ref: ${{ steps.meta.outputs.tags }}
-          image-ref: tasklist-phase1:scan
+          image-ref: local/tasklist-phase1:scan
           format: sarif
           output: trivy-image-results.sarif
+          exit-code: '0'
 
       - name: Upload artifact to pipeline metadata
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: Generate artifact with Trivy image result
