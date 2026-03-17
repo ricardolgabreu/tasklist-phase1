@@ -98,8 +98,9 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          #tags: ${{ steps.meta.outputs.tags }}
+          tags: tasklist-phase1:scan
+          #labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64
           push: false
           load: true
