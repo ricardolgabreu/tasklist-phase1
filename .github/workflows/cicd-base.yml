@@ -123,6 +123,7 @@ jobs:
         with:
           name: Generate artifact with Trivy image result
           path: trivy-image-results.sarif
+          if-no-files-found: warn
 
       - name: Push Docker image (multi-arch)
         uses: docker/build-push-action@v5
